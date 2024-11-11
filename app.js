@@ -8,11 +8,26 @@ import ejsMate from 'ejs-mate';
 import customError from './utils/customError.js';
 import listings from './routes/listings.js';
 import reviews from './routes/reviews.js';
+import session from 'express-session';
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename);
 
 const app = express(); 
+
+const sessionConfig = {
+
+        secret: 'keyboard cat',
+        resave: false,
+        saveUninitialized: true,
+        cookie: { 
+            expires : Date.now() + 9 * 24 * 60 * 60 * 1000,
+            maxAge : 9 * 24 * 60 * 60 * 1000 ,
+            httpOnly : true
+         }
+}
+
+app.use(session(sessionConfig));
 
 app.use(express.urlencoded({extended: true}));
 
