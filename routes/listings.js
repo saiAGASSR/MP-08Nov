@@ -4,11 +4,18 @@ import Review from '../models/reviews.js';
 import customError from '../utils/customError.js';
 import wrapAsync from '../utils/wrapAsyncError.js';
 import schemaValidations from '../schema.js';
+import flash from 'connect-flash';
+
+const app = express(); 
+app.use(flash());
 
 const  router = express.Router();
 const {listingSchema , reviewSchema} = schemaValidations;
 
-
+app.use((req,res,next)=>{
+    res.locals.addlistingsuccessMsg = req.flash("addListingsuccess");
+    next();
+})
 
 const listingValidation = (req,res,next) => {
     // let validationResult  = listingSchema.validate(req.body);
@@ -62,6 +69,7 @@ let addList = new Listing({
 });
 
 await addList.save();
+req.flash("addListingsuccess","new listing added successfully")
 res.redirect("/listings"); // Redirect after successful save
 
 console.log("added");
@@ -91,7 +99,7 @@ res.redirect(`/listings/${id}`)
 
 }));
 
-router.delete("/delete/:id", wrapAsync(async(req,res)=>{
+router.delete("/delete/:id",wrapAsync(async(req,res)=>{
 let id = req.params.id;
 await Listing.findByIdAndDelete(id)
 res.redirect("/listings");

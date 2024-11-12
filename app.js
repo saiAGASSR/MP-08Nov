@@ -9,6 +9,7 @@ import customError from './utils/customError.js';
 import listings from './routes/listings.js';
 import reviews from './routes/reviews.js';
 import session from 'express-session';
+import flash from 'connect-flash';
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename);
@@ -28,6 +29,7 @@ const sessionConfig = {
 }
 
 app.use(session(sessionConfig));
+app.use(flash());
 
 app.use(express.urlencoded({extended: true}));
 
@@ -40,6 +42,11 @@ app.use(methodOverride('_method'));
 
 app.use("/listings",listings);
 app.use("/listing/:id/reviews",reviews);
+
+app.use((req,res,next)=>{
+    res.locals.addlistingsuccessMsg = req.flash("addListingsuccess");
+    next();
+})
 
 app.engine('ejs',ejsMate)
 
