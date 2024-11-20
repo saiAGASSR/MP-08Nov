@@ -6,10 +6,18 @@ import { fileURLToPath } from "url";
 import methodOverride from 'method-override';
 import ejsMate from 'ejs-mate';
 import customError from './utils/customError.js';
-import listings from './routes/listings.js';
-import reviews from './routes/reviews.js';
+
+//Routes
+import listingsRouter from './routes/listings.js';
+import reviewsRouter from './routes/reviews.js';
+import usersRouter from './routes/users.js';
+
 import session from 'express-session';
 import flash from 'connect-flash';
+import passport from 'passport';
+import  LocalStrategy from 'passport-local';
+import User from './models/users.js';
+
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename);
@@ -31,6 +39,13 @@ const sessionConfig = {
 app.use(session(sessionConfig));
 app.use(flash());
 
+app.use(passport.initialize());
+app.use(passport.session());
+
+passport.use(new LocalStrategy(User.authenticate()));
+passport.serializeUser(User.serializeUser());
+passport.deserializeUser(User.deserializeUser());
+
 app.use(express.urlencoded({extended: true}));
 
 app.set("view engine" , "ejs");
@@ -38,15 +53,20 @@ app.set("views" , path.join(__dirname,"views"));
 app.use(express.static(path.join(__dirname,"public")))
 app.use(methodOverride('_method'));
 
-
-
-app.use("/listings",listings);
-app.use("/listing/:id/reviews",reviews);
-
 app.use((req,res,next)=>{
-    res.locals.addlistingsuccessMsg = req.flash("addListingsuccess");
+    res.locals.listingSuccessMsg = req.flash("listingSuccess");
+    res.locals.listingErrorMsg = req.flash("listingError");
+    res.locals.currUser = req.user;
+    console.log("Auth message ?", res.locals.listingErrorMsg);
+    
     next();
-})
+}) 
+
+app.use("/listings",listingsRouter);
+app.use("/listing/:id/reviews",reviewsRouter);
+app.use("/",usersRouter);
+
+
 
 app.engine('ejs',ejsMate)
 
@@ -73,8 +93,37 @@ main()
 
 
 
+app.get("/demoUser",async(req,res)=>{
+    let fakeUser = {
+        username : "saifakerreeer",
+        email : "sai@faker.com"
+    }
 
-    // app.get("/",wrapAsync(async(req,res)=>{
+    let result = await User.register(fakeUser,"helloWorld");
+    res.send(result);
+})
+    
+
+
+
+app.all("*",(req,res,next)=>{
+    next (new customError(404,"Page not found "))
+})
+
+// app.use((err,req,res,next)=>{
+//     next( new customError(500,err.message) )
+// })
+
+app.use((err,req,res,next)=>{
+    console.log(err);
+    let {statusCode = 500 , message = "something went wrong "} = err;
+    res.status(statusCode).render("listings/error.ejs" , {err})
+    // res.status(statusCode).send(message);
+})
+
+
+
+// app.get("/",wrapAsync(async(req,res)=>{
     //     res.send("working ");
     // }));
     
@@ -93,19 +142,3 @@ main()
     //     res.send("saved")
         
     // }));
-
-
-app.all("*",(req,res,next)=>{
-    next (new customError(404,"Page not found "))
-})
-
-// app.use((err,req,res,next)=>{
-//     next( new customError(500,err.message) )
-// })
-
-app.use((err,req,res,next)=>{
-    console.log(err);
-    let {statusCode = 500 , message = "something went wrong "} = err;
-    res.status(statusCode).render("listings/error.ejs" , {err})
-    // res.status(statusCode).send(message);
-})

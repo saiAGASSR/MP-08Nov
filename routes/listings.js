@@ -4,18 +4,13 @@ import Review from '../models/reviews.js';
 import customError from '../utils/customError.js';
 import wrapAsync from '../utils/wrapAsyncError.js';
 import schemaValidations from '../schema.js';
-import flash from 'connect-flash';
+import isLoggedIn from '../middleware.js';
 
-const app = express(); 
-app.use(flash());
 
 const  router = express.Router();
 const {listingSchema , reviewSchema} = schemaValidations;
 
-app.use((req,res,next)=>{
-    res.locals.addlistingsuccessMsg = req.flash("addListingsuccess");
-    next();
-})
+
 
 const listingValidation = (req,res,next) => {
     // let validationResult  = listingSchema.validate(req.body);
@@ -38,16 +33,20 @@ router.get("/", wrapAsync(async (req,res,next)=>{
 
 }));
 
-router.get("/new", wrapAsync(async(req,res)=>{
+router.get("/new",isLoggedIn, wrapAsync(async(req,res)=>{
 res.render("./listings/addListForm")
 }));
 
-router.get("/:id", wrapAsync(async (req,res)=>{
+router.get("/:id", isLoggedIn, wrapAsync(async (req,res)=>{
 let  id     = req.params.id ;
 console.log(id);
 
 let  singleListing  =  await Listing.findById(id).populate("reviews");
 console.log(singleListing);
+if(!singleListing){
+    req.flash("listingError","The listing you are searching is deleted or does not exists");
+    res.redirect("/listings");
+}
 
 res.render('listings/singleListing' , {singleListing})
 }));
@@ -55,37 +54,41 @@ res.render('listings/singleListing' , {singleListing})
 
 
 // Validating  listing form using joi 
-router.post("/", listingValidation ,wrapAsync(async (req, res, next) => {
-console.log("new post request ");
-console.log(req.body);
-// Create a new listing object
-let addList = new Listing({
-    title: req.body.title,
-    description: req.body.description,
-    price: req.body.price,
-    image: req.body.image,
-    country: req.body.country,
-    location: req.body.location
-});
+router.post("/",isLoggedIn, listingValidation ,wrapAsync(async (req, res, next) => {
+    console.log("new post request ");
+    console.log(req.body);
+    // Create a new listing object
+    let addList = new Listing({
+        title: req.body.title,
+        description: req.body.description,
+        price: req.body.price,
+        image: req.body.image,
+        country: req.body.country,
+        location: req.body.location
+    });
 
-await addList.save();
-req.flash("addListingsuccess","new listing added successfully")
-res.redirect("/listings"); // Redirect after successful save
+    await addList.save();
+    req.flash("listingSuccess","new listing added successfully")
+    res.redirect("/listings"); // Redirect after successful save
 
-console.log("added");
+    console.log("added");
 }));
 
 
 
-router.get("/edit/:id",wrapAsync(async(req,res)=>{
+router.get("/edit/:id", isLoggedIn , wrapAsync(async(req,res)=>{
 console.log(req.params.id);
 let id = req.params.id;
 let editListing = await Listing.findById(id);
+if(!editListing){
+    req.flash("listingError","The listing you are searching is deleted or does not exists");
+    res.redirect("/listings");
+}
 res.render("./listings/editListForm",{editListing})
 
 }));
 
-router.put("/edit/:id",wrapAsync(async(req,res)=>{
+router.put("/edit/:id",isLoggedIn,wrapAsync(async(req,res)=>{
 let id = req.params.id;
 if(!req.body.listing){
     throw new customError(400,"please provide information")
@@ -95,18 +98,21 @@ let editListing = await Listing.findByIdAndUpdate(id,{...updateJSONBody})
 
 console.log('id in put is ',id);
 console.log('body in put is ',updateJSONBody);
+req.flash("listingSuccess","new listing edited successfully")
 res.redirect(`/listings/${id}`)
 
 }));
 
-router.delete("/delete/:id",wrapAsync(async(req,res)=>{
+router.delete("/delete/:id", isLoggedIn,wrapAsync(async(req,res)=>{
 let id = req.params.id;
-await Listing.findByIdAndDelete(id)
+await Listing.findByIdAndDelete(id);
+req.flash("listingSuccess","listing deleted successfully")
 res.redirect("/listings");
 }));
 
-router.delete("/" ,wrapAsync(async(req,res)=>{
+router.delete("/" , isLoggedIn, wrapAsync(async(req,res)=>{
     await Listing.deleteMany({});
+    req.flash("listingSuccess","all listing deleted successfully")
     res.redirect("/listings");
 }));
 
