@@ -12,24 +12,23 @@
 
                 <img src=" <%= singleListing.image  %>" class="card-img-top img-in-single-list" alt="your image">
                 <div class="card-body">
-                    <p class="card-text mt-3" >
-                        <%= singleListing.description  %>   
-                        <br>
-                            <%= singleListing.price.toLocaleString('en-IN',{
-                                maximumFractionDigits : 2 ,
-                                style :'currency',
-                                currency : 'INR'
-                            })  %>   
-                        <br>
-                            <%= singleListing.location  %>   
-                        <br>
-                            <%= singleListing.country  %>   
-        
-                    </p>
+                    <p class="card-text mt-3" > created by <i><%= singleListing.owner.username  %>  </i>  </p>
+                    <p class="card-text mt-3" > <%= singleListing.description  %>   </p>
+                    <p class="card-text mt-3" > 
+                        <%= singleListing.price.toLocaleString('en-IN',{
+                            maximumFractionDigits : 2 ,
+                            style :'currency',
+                            currency : 'INR'
+                        })  %>   </p>
+                        
+                        <p class="card-text mt-3" >  <%= singleListing.location  %>   </p>
+                        <p class="card-text mt-3" >   <%= singleListing.country  %>     </p>
+  
                 </div>
                 </div>
                 <br>
 
+                <% if ( currUser && currUser._id.equals(singleListing.owner._id) )  {%>
 
                 <div class="btns col-6 offset-3 editDeletebtns   mb-4 " >
                     <form  action="/listings/edit/<%= singleListing._id %>">
@@ -46,7 +45,7 @@
             
                 </div>
             
-            
+            <% } %>
 
 
 

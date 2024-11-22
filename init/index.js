@@ -24,7 +24,8 @@ main()
     async function initDB (){
         // await Listing.deleteMany({});
         await Listing.deleteMany();
-        await Listing.insertMany(sampleListings);
+        let sampleListingswithOwner = sampleListings.map((obj) => ({...obj , owner:  "673f08e6ddd3e865ddd98982"}));
+        await Listing.insertMany(sampleListingswithOwner);
     }
 
 

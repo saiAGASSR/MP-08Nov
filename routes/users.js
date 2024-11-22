@@ -52,7 +52,7 @@ router.get("/logout", (req,res,next)=>{
         if(err){
             return next(err);
         }
-        req.flash("listingSuccess", "logged Out Successfullt");
+        req.flash("listingSuccess", "logged Out Successfully");
         res.redirect("/listings");
     })
  
@@ -73,8 +73,17 @@ router.post("/signUp" ,wrapAsync(async (req,res) =>{
      
          let result = await User.register(newUser,password);
          console.log(result);
-         req.flash("listingSuccess","You are registered succesfully Please login with your credentials");
-         res.redirect("/login");
+         
+         req.login(result,(err)=>{
+            if(err){
+                return next(err);
+
+            }
+            req.flash("listingSuccess","You are registered succesfully ");
+            res.redirect("/listings");
+         })
+
+        
     } catch (err){
         req.flash("listingError",err.message);
         res.redirect("/signUp");

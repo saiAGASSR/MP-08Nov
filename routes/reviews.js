@@ -3,11 +3,9 @@ import Listing from  '../models/listings.js'
 import Review from '../models/reviews.js';
 import customError from '../utils/customError.js';
 import wrapAsync from '../utils/wrapAsyncError.js';
-import schemaValidations from '../schema.js';
 
 
 const  router = express.Router({mergeParams: true});
-const {listingSchema , reviewSchema} = schemaValidations;
 
 
 const reviewValidation = (req,res,next) => {
