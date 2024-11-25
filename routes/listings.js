@@ -2,7 +2,6 @@ import express from 'express';
 import Listing from  '../models/listings.js'
 import customError from '../utils/customError.js';
 import wrapAsync from '../utils/wrapAsyncError.js';
-import isLoggedIn from '../middleware.js';
 import middlewares from '../middleware.js';
 
 const {listingValidation , isLoggedIn, isOwner } = middlewares;

@@ -1,4 +1,4 @@
-import Listing from "./models/listings";
+import Listing from "./models/listings.js";
 import schemaValidations from './schema.js';
 import customError from "./utils/customError.js";
 
@@ -19,7 +19,7 @@ let isLoggedIn = async (req,res,next) => {
 let isOwner = async (req,res,next) =>{
    let {id} = req.params;
    let singleListing = await Listing.findById(id); 
-   if(! singleListing.owner._id.equals(res.locals.currUser._id) ){
+   if( singleListing && !singleListing.owner._id.equals(res.locals.currUser._id) ){
       req.flash("listingError","you are not the owner of the listing ");
       return res.redirect(`/listings/${id}`);
    }
